@@ -25,16 +25,18 @@ tokenizer = DistilBertTokenizer.from_pretrained("distilbert-base-uncased")
 bert = DistilBertModel.from_pretrained("distilbert-base-uncased").to(device)
 
 
-EPOCHS = 5
+EPOCHS = 20
 BATCH_SIZE = 24
-MAX_LENGTH = 10
+MAX_LENGTH = 15
 LR = 0.001
 CKPT_DIR = "./ckpt"
-NUM_CLASSES = 3
+NUM_CLASSES = 2
+
+N_DIMS = 768
 
 
-label_map = {"Beyoncé": 0, "Drake": 1, "Taylor Swift": 2}
-label_map_rev = {0: "Beyoncé", 1: "Drake", 2: "Taylor Swift"}
+label_map = {"Real": 0, "Fake": 1}
+label_map_rev = {0: "Real", 1: "Fake"}
 
 
 class NN(nn.Module):
@@ -47,28 +49,49 @@ class NN(nn.Module):
         self.bert = bert
 
         self.hidden_layers = nn.Sequential(      
+
                             # Layer 1
-                            nn.Linear(768, 384),
+                            nn.Linear(N_DIMS * n_features, N_DIMS * n_features // 2),
                             nn.ReLU(),
+
                             # Layer 2
-                            nn.Linear(384, 192),
+                            nn.Linear(N_DIMS * n_features // 2, N_DIMS * n_features // 2),
                             nn.ReLU(),
+
                             # Layer 3
-                            nn.Linear(192, 96),
+                            nn.Linear(N_DIMS * n_features // 2, N_DIMS * n_features // 4),
                             nn.ReLU(),
+
                             # Layer 4
-                            nn.Linear(96, 48),
-                            nn.ReLU()
+                            nn.Linear(N_DIMS * n_features // 4, N_DIMS * n_features // 8),
+                            nn.ReLU(),
+
+                            # Layer 5
+                            nn.Linear(N_DIMS * n_features // 8, N_DIMS * n_features // 16),
+                            nn.ReLU(),
+
+                            # Layer 6
+                            nn.Linear(N_DIMS * n_features // 16, N_DIMS * n_features // 16),
+                            nn.ReLU(),
+
+                            # Layer 7
+                            nn.Linear(N_DIMS * n_features // 16, N_DIMS * n_features // 32),
+                            nn.ReLU(),
+
+                            # Layer 8
+                            nn.Linear(N_DIMS * n_features // 32, N_DIMS * n_features // 32),
+                            nn.ReLU(),
+                            
+                            # Layer 9
+                            nn.Linear(N_DIMS * n_features // 32, N_DIMS * n_features // 64),
+                            nn.ReLU(),
+                            
         )
         self.flatten = nn.Flatten()
-        # Reduce to the three labels (artist names)
-        # Layer 5
+        # Reduce to the 2 labels (real or fake)
+        # Layer 10
 
-        # self.output_layer = nn.Linear(MAX_LENGTH * 768, 3)
-        self.output_layer = nn.Linear(n_features * 48, 3)
- 
-        
-
+        self.output_layer = nn.Linear(N_DIMS * n_features // 64, 2)
 
         # Log probabilities of each class (specifying the dimension of the
         # input tensor to use)
@@ -93,30 +116,33 @@ class NN(nn.Module):
 ####
 
 
-def make_data(fname: str, label_map: dict) -> Tuple[list[str], list[int]]:
+def make_data(fname: str, label_map: dict) -> Tuple[list[str], list[str], list[int]]:
     with open(fname, newline='') as csvfile:
         data = csv.reader(csvfile, delimiter=',')
         
-        saved = ([],[])
-        
+        saved = ([], [], [])
 
         for row in data:
-            # Gets lyrics
-            saved[0].append(row[3])
+            # Gets title
+            saved[0].append(row[0])
 
-            # Gets the label map for artist name
-            saved[1].append(label_map[row[0]])
+            # Gets text
+            saved[1].append(label_map[1])
+
+            # Gets label (real or fake)
+            saved[2].append(label_map[row[2]])
 
         return saved
 
 
 
 
-def prep_bert_data(data: list[str], max_length: int) -> list[torch.Tensor]:
-    padded = [tokenizer(d, truncation= True, padding='max_length', max_length= max_length) for d in data]
+def prep_bert_data(titles: list[str], texts: list[str], max_length: int) -> Tuple[list[torch.Tensor], list[torch.Tensor]]:
+    padded_titles = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in titles]
+    padded_texts = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in texts]
     # print(padded[:2])
     # extract each input_id arrays and convert to tensors
-    return [torch.tensor(p['input_ids'], dtype=torch.long) for p in padded]
+    return ([torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_titles], [torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_texts])
 
 ####
 
@@ -280,7 +306,7 @@ def print_performance_by_class(labels, model):
 
 
 
-
+#Fake-News-Phrase-Detection
 
 def main():
     """Run the song classification."""
@@ -288,8 +314,8 @@ def main():
     train_f = "train.csv"
     test_f = "test.csv"
 
-    train_data, train_labels = make_data(train_f, label_map)
-    test_data, test_labels = make_data(test_f, label_map)
+    train_titles, train_texts, train_labels = make_data(train_f, label_map)
+    test_titles, test_texts, test_labels = make_data(test_f, label_map)
 
     # for i in label_map_rev:
     #     print(f"Lyrics in Class {i} ({label_map_rev[i] + '):':14}",
@@ -297,11 +323,11 @@ def main():
 
     # print()
 
-    train_feats = prep_bert_data(train_data, MAX_LENGTH)
-    test_feats = prep_bert_data(test_data, MAX_LENGTH)
+    train_feats_titles, train_feats_texts = prep_bert_data(train_titles, train_texts, MAX_LENGTH)
+    test_feats_titles, test_feats_texts = prep_bert_data(test_titles, test_texts, MAX_LENGTH)
 
-    train_dataset = list(zip(train_feats, train_labels))
-    test_dataset = list(zip(test_feats, test_labels))
+    train_dataset = list(zip(train_feats_titles, train_labels))
+    test_dataset = list(zip(test_feats_titles, test_labels))
 
     train_dataloader = DataLoader(
         train_dataset, batch_size=BATCH_SIZE, shuffle=True
@@ -324,11 +350,11 @@ def main():
         test(train_dataloader, model, "Train")
         test(test_dataloader, model, "Test")
     
-    test_predictions = predict(test_feats, model)
+    test_predictions = predict(test_feats_titles, model)
     print_performance_by_class(test_labels, test_predictions)
     print()
 
-    sample_and_print_predictions(test_feats, test_data, test_labels,model)
+    sample_and_print_predictions(test_feats_titles, test_titles, test_labels,model)
 
 
 if __name__ == "__main__":
