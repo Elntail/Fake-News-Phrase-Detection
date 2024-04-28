@@ -119,13 +119,16 @@ def make_data(fname: str, label_map: dict) -> Tuple[list[str], list[str], list[i
     with open(fname, newline='') as csvfile:
         data = csv.reader(csvfile, delimiter=',')
         
-        saved = ([], [])
+        saved = ([], [], [])
 
         for row in data:
             # Gets title
             saved[0].append(row[1])
-
+            
             # Gets text
+            saved[1].append(row[2])
+
+             # Gets label
             saved[1].append(row[3])
 
         return saved
