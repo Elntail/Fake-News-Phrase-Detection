@@ -123,22 +123,22 @@ def make_data(fname: str, label_map: dict) -> Tuple[list[str], list[str], list[i
 
         for row in data:
             # Gets title
-            saved[0].append(row[0])
+            saved[0].append(row[1])
 
             # Gets text
-            saved[1].append(row[1])
+            saved[1].append(row[3])
 
         return saved
 
 
 
 
-def prep_bert_data(titles: list[str], max_length: int) -> Tuple[list[torch.Tensor], list[torch.Tensor]]:
+def prep_bert_data(titles: list[str], titles: list[str], max_length: int) -> Tuple[list[torch.Tensor], list[torch.Tensor]]:
     padded_titles = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in titles]
-    #padded_texts = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in texts]
+    padded_texts = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in texts]
     # print(padded[:2])
     # extract each input_id arrays and convert to tensors
-    return [torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_titles]
+    return ([torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_titles], [torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_texts])
 
 ####
 
@@ -309,18 +309,18 @@ def main():
 
     train_f = "train.csv"
     test_f = "test.csv"
-
-    train_titles, train_labels = make_data(train_f, label_map)
-    test_titles, test_labels = make_data(test_f, label_map)
-
+    
+    train_titles, train_texts, train_labels = make_data(train_f, label_map)
+    test_titles, test_texts, test_labels = make_data(test_f, label_map)
+    
     # for i in label_map_rev:
     #     print(f"Lyrics in Class {i} ({label_map_rev[i] + '):':14}",
     #           len([t for t in train_labels if t == i]))
 
     # print()
 
-    train_feats_titles = prep_bert_data(train_titles, MAX_LENGTH)
-    test_feats_titles = prep_bert_data(test_titles, MAX_LENGTH)
+    train_feats_titles, train_feats_texts = prep_bert_data(train_titles, train_texts, MAX_LENGTH)
+    test_feats_titles, test_feats_texts = prep_bert_data(test_titles, test_texts, MAX_LENGTH)
 
     train_dataset = list(zip(train_feats_titles, train_labels))
     test_dataset = list(zip(test_feats_titles, test_labels))
