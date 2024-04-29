@@ -8,6 +8,7 @@ import os
 import sys
 from typing import Callable, Tuple
 
+import random as rd
 import numpy as np
 import torch
 from torch import nn
@@ -27,7 +28,7 @@ bert = DistilBertModel.from_pretrained("distilbert-base-uncased").to(device)
 
 EPOCHS = 20
 BATCH_SIZE = 24
-MAX_LENGTH = 15
+MAX_LENGTH = 20
 LR = 0.001
 CKPT_DIR = "./ckpt"
 NUM_CLASSES = 2
@@ -51,39 +52,39 @@ class NN(nn.Module):
         self.hidden_layers = nn.Sequential(      
 
                             # Layer 1
-                            nn.Linear(N_DIMS * n_features, N_DIMS * n_features // 2),
+                            nn.Linear(N_DIMS, N_DIMS // 2),
                             nn.ReLU(),
 
                             # Layer 2
-                            nn.Linear(N_DIMS * n_features // 2, N_DIMS * n_features // 2),
+                            nn.Linear(N_DIMS // 2, N_DIMS // 2),
                             nn.ReLU(),
 
                             # Layer 3
-                            nn.Linear(N_DIMS * n_features // 2, N_DIMS * n_features // 4),
+                            nn.Linear(N_DIMS // 2, N_DIMS // 4),
                             nn.ReLU(),
 
                             # Layer 4
-                            nn.Linear(N_DIMS * n_features // 4, N_DIMS * n_features // 8),
+                            nn.Linear(N_DIMS // 4, N_DIMS // 8),
                             nn.ReLU(),
 
                             # Layer 5
-                            nn.Linear(N_DIMS * n_features // 8, N_DIMS * n_features // 16),
+                            nn.Linear(N_DIMS // 8, N_DIMS // 16),
                             nn.ReLU(),
 
                             # Layer 6
-                            nn.Linear(N_DIMS * n_features // 16, N_DIMS * n_features // 16),
+                            nn.Linear(N_DIMS // 16, N_DIMS // 16),
                             nn.ReLU(),
 
                             # Layer 7
-                            nn.Linear(N_DIMS * n_features // 16, N_DIMS * n_features // 32),
+                            nn.Linear(N_DIMS // 16, N_DIMS // 32),
                             nn.ReLU(),
 
                             # Layer 8
-                            nn.Linear(N_DIMS * n_features // 32, N_DIMS * n_features // 32),
+                            nn.Linear(N_DIMS // 32, N_DIMS // 32),
                             nn.ReLU(),
                             
                             # Layer 9
-                            nn.Linear(N_DIMS * n_features // 32, N_DIMS * n_features // 64),
+                            nn.Linear(N_DIMS // 32, N_DIMS // 64),
                             nn.ReLU(),
                             
         )
@@ -109,6 +110,7 @@ class NN(nn.Module):
         scores = self.output_layer(flattened_states)
         probs = self.out(scores)
         
+        
         return probs
 
 
@@ -116,32 +118,32 @@ class NN(nn.Module):
 
 
 def make_data(fname: str, label_map: dict) -> Tuple[list[str], list[str], list[int]]:
-    with open(fname, newline='') as csvfile:
+    with open(fname, newline=',,') as csvfile:
         data = csv.reader(csvfile, delimiter=',')
         
         saved = ([], [], [])
 
         for row in data:
             # Gets title
-            saved[0].append(row[1])
-            
-            # Gets text
-            saved[1].append(row[2])
+            saved[0].append(row[0])
 
-             # Gets label
-            saved[1].append(row[3])
+            # Gets text
+            saved[1].append(label_map[1])
+
+            # Gets label (real or fake)
+            saved[2].append(label_map[row[2]])
 
         return saved
 
 
 
 
-def prep_bert_data(titles: list[str], titles: list[str], max_length: int) -> Tuple[list[torch.Tensor], list[torch.Tensor]]:
+def prep_bert_data(titles: list[str], max_length: int) -> Tuple[list[torch.Tensor], list[torch.Tensor]]:
     padded_titles = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in titles]
-    padded_texts = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in texts]
+    #padded_texts = [tokenizer(t, truncation= True, padding='max_length', max_length= max_length) for t in texts]
     # print(padded[:2])
     # extract each input_id arrays and convert to tensors
-    return ([torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_titles], [torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_texts])
+    return [torch.tensor(p['input_ids'], dtype=torch.long) for p in padded_titles]
 
 ####
 
@@ -312,18 +314,24 @@ def main():
 
     train_f = "train.csv"
     test_f = "test.csv"
-    
-    train_titles, train_texts, train_labels = make_data(train_f, label_map)
-    test_titles, test_texts, test_labels = make_data(test_f, label_map)
-    
+
+    #train_titles, train_texts, train_labels = make_data(train_f, label_map)
+    #test_titles, test_texts, test_labels = make_data(test_f, label_map)
+
     # for i in label_map_rev:
     #     print(f"Lyrics in Class {i} ({label_map_rev[i] + '):':14}",
     #           len([t for t in train_labels if t == i]))
 
     # print()
+    
+    train_titles, train_labels =  ["Comment on Seattle council member proposes a MASSIVE fee hike for pot shops by Steven Broiles", 
+                                   "Will Barack Obama Delay Or Suspend The Election If Hillary Is Forced Out By The New FBI Email Investigation?", 
+                                   "\"Malia Obama to Attend Harvard, but Not Until 2017 - The New York Times\""], [1, 1, 0]
+    test_titles, test_labels = ["White House says opposes House bill on restaurant calories", "House passes extreme ban on abortion coverage", "Gay and lesbian troops will be protected by new Pentagon policy"], [0, 0, 0]
 
-    train_feats_titles, train_feats_texts = prep_bert_data(train_titles, train_texts, MAX_LENGTH)
-    test_feats_titles, test_feats_texts = prep_bert_data(test_titles, test_texts, MAX_LENGTH)
+
+    train_feats_titles = prep_bert_data(train_titles, MAX_LENGTH)
+    test_feats_titles = prep_bert_data(test_titles, MAX_LENGTH)
 
     train_dataset = list(zip(train_feats_titles, train_labels))
     test_dataset = list(zip(test_feats_titles, test_labels))
@@ -331,11 +339,10 @@ def main():
     train_dataloader = DataLoader(
         train_dataset, batch_size=BATCH_SIZE, shuffle=True
     )
-    
     test_dataloader = DataLoader(test_dataset, batch_size=1)
 
     model, optimizer, epoch_start = make_or_restore_model(MAX_LENGTH)
-
+    
     for e in range(epoch_start, EPOCHS):
         print()
         print("Epoch", e)
@@ -354,7 +361,8 @@ def main():
     print_performance_by_class(test_labels, test_predictions)
     print()
 
-    sample_and_print_predictions(test_feats_titles, test_titles, test_labels,model)
+    sample_and_print_predictions(test_feats_titles, test_titles, test_labels, model)
+    
 
 
 if __name__ == "__main__":
