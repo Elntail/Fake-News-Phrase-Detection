@@ -6,6 +6,32 @@ import sys
 import os
 from langdetect import detect
 
+
+
+def split_data():
+    real = pd.read_csv('Cleaned_Real_Dataset.csv')
+    fake = pd.read_csv('Cleaned_Fake_Dataset.csv')
+
+
+    total_data = pd.concat([real, fake])
+
+    print('total: ', len(total_data))
+
+    randomized = total_data.sample(frac=1).reset_index(drop=True)
+
+    train = randomized.sample(frac=.75)
+
+    test = randomized.drop(train.index)
+
+    print('train: ', len(train))
+    print('test: ', len(test))
+
+    train.to_csv('train.csv')
+    test.to_csv('test.csv')
+
+
+    
+
 def main():
     csv.field_size_limit(sys.maxsize)
     file = '/home/rlantajo/Desktop/CS366/WELFake_Dataset.csv'
@@ -24,56 +50,56 @@ def main():
     # real.to_csv('real_data.csv')
     # fake.to_csv('fake_data.csv')
     
-    real = pd.read_csv('real_data.csv')
-    fake = pd.read_csv('fake_data.csv')
+    # real = pd.read_csv('real_data.csv')
+    # fake = pd.read_csv('fake_data.csv')
 
-    print('real: ', len(real))
-    print('fake: ', len(fake))
+    # print('real: ', len(real))
+    # print('fake: ', len(fake))
 
     
-    with open('real_data.csv', 'r') as real, open('fake_data.csv', 'r') as fake:
-        real_reader = csv.reader(real)
-        next(real_reader, None)
-        fake_reader = csv.reader(fake)
-        next(fake_reader, None)
-        header = ['', 'Unnamed: 0', 'title', 'text', 'label']
+    # with open('real_data.csv', 'r') as real, open('fake_data.csv', 'r') as fake:
+    #     real_reader = csv.reader(real)
+    #     next(real_reader, None)
+    #     fake_reader = csv.reader(fake)
+    #     next(fake_reader, None)
+    #     header = ['', 'Unnamed: 0', 'title', 'text', 'label']
 
-        modified_real = [header]
-        modified_fake = [header]
+    #     modified_real = [header]
+    #     modified_fake = [header]
 
-        with open('Cleaned_Real_Dataset.csv', 'w') as file:
-            writer = csv.writer(file)
-            writer.writerow(header)
+    #     with open('Cleaned_Real_Dataset.csv', 'w') as file:
+    #         writer = csv.writer(file)
+    #         writer.writerow(header)
 
-            rows = []
+    #         rows = []
 
-            for row in real_reader:
-                if row[2].strip() == '' or row[3].strip() == '':
-                    continue
-                rows.append(row)
+    #         for row in real_reader:
+    #             if row[2].strip() == '' or row[3].strip() == '':
+    #                 continue
+    #             rows.append(row)
             
-            print('real: ', len(rows))
-            # print(rows[1])
+    #         print('real: ', len(rows))
+    #         # print(rows[1])
 
-            writer.writerows(rows)
+    #         writer.writerows(rows)
 
 
-        with open('Cleaned_Fake_Dataset.csv', 'w') as file:
-            writer = csv.writer(file)
-            writer.writerow(header)
+    #     with open('Cleaned_Fake_Dataset.csv', 'w') as file:
+    #         writer = csv.writer(file)
+    #         writer.writerow(header)
 
-            rows = []
+    #         rows = []
 
-            for row in fake_reader:
-                if row[2].strip() == '' or row[3].strip() == '':
-                    continue
-                rows.append(row)    
+    #         for row in fake_reader:
+    #             if row[2].strip() == '' or row[3].strip() == '':
+    #                 continue
+    #             rows.append(row)    
 
-            print('fake: ', len(rows))
-            # print(rows[1])
+    #         print('fake: ', len(rows))
+    #         # print(rows[1])
 
-            writer.writerows(rows)
-
+    #         writer.writerows(rows)
+    split_data()
 
 
 if __name__ == "__main__":
