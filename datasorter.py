@@ -75,8 +75,8 @@ def clean_data():
                 if row[2].strip() == '' or row[3].strip() == '':
                     continue
 
-                title = row[2].replace('\n', '')
-                text = row[3]. replace('\n', '')
+                title = row[2].replace('\n', ' ')
+                text = row[3]. replace('\n', ' ')
                 rows.append([title, text, row[4]])    
 
             print('fake: ', len(rows))
@@ -115,8 +115,8 @@ def combine_data():
     fake_test = fake_randomized.drop(fake_train.index)
 
     # Combine both training datasets and both test datasets 
-    train = pd.concat([real_train, fake_train]).reset_index(drop=True)
-    test = pd.concat([real_test, fake_test]).reset_index(drop=True)
+    train = pd.concat([real_train, fake_train]).sample(frac=1).reset_index(drop=True)
+    test = pd.concat([real_test, fake_test]).sample(frac=1).reset_index(drop=True)
 
     print('train: ', len(train))
     print('test: ', len(test))
