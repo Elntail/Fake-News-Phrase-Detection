@@ -4,6 +4,7 @@ import csv
 import pandas as pd
 import sys
 import os
+import re
 from langdetect import detect
 
 
@@ -38,6 +39,24 @@ def split_data():
     print('real after: ', len(real))
     print('fake after: ', len(fake))
 
+def clean_string(string: str) -> str:
+    # Remove 1/11/11 or 11/11/11 dates
+    string = re.sub(r'[1-9]+(/|-)[0-9][0-9](/|-)[0-9][0-9]', '', string)
+    # Remove [word] or (word)
+    string = re.sub(r'\[[A-Za-z0-9]+\]|\([A-Za-z0-9]+\)', '', string)
+    # Remove links
+    string = re.sub(r'https://[A-Za-z0-9]+(\.[A-Za-z0-9]+)+(/[A-Za-z0-9]+((-|_)?[A-Za-z0-9]+))+(\.[A-Za-z0-9]+)?', '', string)
+    # Replace special characters with blank space
+    string = re.sub(r'…|–', ' ', string)
+    # Replace trailing dots with a single dot
+    string = re.sub(r'\.\.\.', '.', string)
+    # Remove hashtags
+    string = re.sub(r'#', '', string)
+    string = re.sub(r'\|', '.', string)
+
+    return str(string)
+    
+
 def clean_data():
     with open('real_data.csv', 'r') as real, open('fake_data.csv', 'r') as fake:
         real_reader = csv.reader(real, delimiter='|')
@@ -49,14 +68,18 @@ def clean_data():
             rows = []
 
             for row in real_reader:
-                # row[2] = title
-                # row[3] = text
-                if row[2].strip() == '' or row[3].strip() == '':
-                    continue
-                
+
                 title = row[2].replace('\n', '')
                 text = row[3]. replace('\n', '')
-                rows.append([title, text, row[4]])  
+
+                cleaned_title = clean_string(title)
+                cleaned_text = clean_string(text)   
+
+                if cleaned_title.strip() == '' or cleaned_text.strip() == '':
+                    continue
+                
+
+                rows.append([cleaned_title, cleaned_text, row[4]])  
             
             print('real: ', len(rows))
             # print(rows[1])
@@ -70,14 +93,19 @@ def clean_data():
             rows = []
 
             for row in fake_reader:
-                # row[2] = title
-                # row[3] = text
-                if row[2].strip() == '' or row[3].strip() == '':
-                    continue
-
+                # Clean strings 
                 title = row[2].replace('\n', ' ')
                 text = row[3]. replace('\n', ' ')
-                rows.append([title, text, row[4]])    
+                
+                cleaned_title = clean_string(title).lower()
+                cleaned_text = clean_string(text).lower()
+
+
+                if cleaned_title.strip() == '' or cleaned_text.strip() == '':
+                    continue
+               
+
+                rows.append([cleaned_title, cleaned_text, row[4]])   
 
             print('fake: ', len(rows))
             # print(rows[1])
