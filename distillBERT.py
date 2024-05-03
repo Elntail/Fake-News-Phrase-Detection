@@ -28,7 +28,7 @@ bert = DistilBertModel.from_pretrained("distilbert-base-uncased").to(device)
 
 EPOCHS = 20
 BATCH_SIZE = 24
-MAX_LENGTH = 20
+MAX_LENGTH = 10
 LR = 0.001
 CKPT_DIR = "./ckpt"
 NUM_CLASSES = 2
@@ -54,43 +54,24 @@ class NN(nn.Module):
                             nn.ReLU(),
 
                             # Layer 2
-                            nn.Linear(N_DIMS // 2, N_DIMS // 2),
-                            nn.ReLU(),
-
-                            # Layer 3
                             nn.Linear(N_DIMS // 2, N_DIMS // 4),
                             nn.ReLU(),
 
-                            # Layer 4
+                            # Layer 3
                             nn.Linear(N_DIMS // 4, N_DIMS // 8),
                             nn.ReLU(),
 
-                            # Layer 5
+                            # Layer 4
                             nn.Linear(N_DIMS // 8, N_DIMS // 16),
                             nn.ReLU(),
-
-                            # Layer 6
-                            nn.Linear(N_DIMS // 16, N_DIMS // 16),
-                            nn.ReLU(),
-
-                            # Layer 7
-                            nn.Linear(N_DIMS // 16, N_DIMS // 32),
-                            nn.ReLU(),
-
-                            # Layer 8
-                            nn.Linear(N_DIMS // 32, N_DIMS // 32),
-                            nn.ReLU(),
-                            
-                            # Layer 9
-                            nn.Linear(N_DIMS // 32, N_DIMS // 64),
-                            nn.ReLU(),
+                        
                             
         )
         self.flatten = nn.Flatten()
         # Reduce to the 2 labels (real or fake)
         # Layer 10
 
-        self.output_layer = nn.Linear(N_DIMS * n_features // 64, 2)
+        self.output_layer = nn.Linear(N_DIMS * n_features // 16, 2)
 
         # Log probabilities of each class (specifying the dimension of the
         # input tensor to use)
@@ -137,12 +118,14 @@ def make_data(fname: str) -> Tuple[list[str], list[str], list[int]]:
 
             i += 1
 
+            
             #threshold to make sure we don't use too much
-            if i == 301 and fname == "train.csv":
+            if i == 201 and fname == "train.csv":
                 break
 
-            if i == 101 and fname == "test.csv":
+            if i == 201 and fname == "test.csv":
                 break
+            
 
         for list in saved:
             list.remove(list[0])
@@ -276,8 +259,8 @@ def precision(labels, model):
     for i in range(len(model)):
         label = labels[i]
         
-        print(label)
-        print(get_predicted_label_from_predictions(model[i]))
+        #print(label)
+        #print(get_predicted_label_from_predictions(model[i]))
 
         if label == get_predicted_label_from_predictions(model[i]):
             if (get_predicted_label_from_predictions(model[i]) == 1):
@@ -289,6 +272,7 @@ def precision(labels, model):
     print(f"true pos: {true_pos}")
 
     return true_pos / (true_pos + false_pos)
+
 
 
 def recall(labels, model):
@@ -309,6 +293,7 @@ def recall(labels, model):
     return true_pos / (true_pos + false_neg)
 
 
+
 def f1_score(labels, model):
 
     #print(labels)
@@ -323,6 +308,7 @@ def f1_score(labels, model):
     return (2 * p * r)/(p + r)
 
 
+
 def frequency(label, labels):
 
     total_freq = 0
@@ -332,14 +318,15 @@ def frequency(label, labels):
         if label == x:
             total_freq += 1
 
-    print(total_freq)
-
     return total_freq
+
 
 #Fake-News-Phrase-Detection
 
 def main():
     """Run the song classification."""
+
+    csv.field_size_limit(sys.maxsize)
 
     train_f = "train.csv"
     test_f = "test.csv"
@@ -395,7 +382,8 @@ def main():
         test(test_dataloader, model, "Test", tensor_weight_map)
     
     test_predictions = predict(test_feats_titles, model)
-    print(f"F1 Score: {(f1_score(test_labels, test_predictions))}")
+    print(f"F1 Score for test data: {(f1_score(test_labels, test_predictions))}")
+    #print(f"F1 Score for test data: {(f1_)}")
     print()
 
 
