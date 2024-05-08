@@ -6,12 +6,20 @@ import sys
 import os
 import re
 from langdetect import detect
+csv.field_size_limit(sys.maxsize)
+
 
 
 def split_data():
+    ''' 
+    Takes a single CSV with delim = ',' to use delim '|' for processing
+    with the name 'dataset.csv'/. Then separate the dataset into its
+    two label classifications under 'real_data.csv' and 'fake_data.csv'
+    '''
+    # Replace with pathway of file
     file = '/home/rlantajo/Desktop/CS366/WELFake_Dataset.csv'
-    # Test with test data
-
+    
+    # Update given file to use the delimiter | for processing
     reader = csv.reader(open(file))
     writer = csv.writer(open("dataset.csv", 'w'), delimiter='|')
     writer.writerows(reader)
@@ -19,14 +27,14 @@ def split_data():
     
     data = pd.read_csv('dataset.csv', delimiter='|')
 
-    # Split data by label
+    # Split data by label and randomize
     gk = data.groupby('label')
     real = gk.get_group(0).sample(frac=1).reset_index(drop=True)
     fake = gk.get_group(1).sample(frac=1).reset_index(drop=True)
 
 
-    print('real before: ', len(real))
-    print('fake before: ', len(fake))
+    # print('real before: ', len(real))
+    # print('fake before: ', len(fake))
 
     # Save data into seperate files
     real.to_csv('real_data.csv', sep='|')
@@ -36,10 +44,17 @@ def split_data():
     real = pd.read_csv('real_data.csv', sep='|')
     fake = pd.read_csv('fake_data.csv', sep='|')
 
-    print('real after: ', len(real))
-    print('fake after: ', len(fake))
+    # print('real after: ', len(real))
+    # print('fake after: ', len(fake))
 
 def clean_string(string: str) -> str:
+    ''' 
+    Cleans a string of text that of unnecessary text
+
+    :param string: full text or title from dataset
+    :return: filtered string without undesired words and characters
+
+    '''
     # Remove 1/11/11 or 11/11/11 dates
     string = re.sub(r'[1-9]+(/|-)[0-9][0-9](/|-)[0-9][0-9]', '', string)
     # Remove [word] or (word)
@@ -58,6 +73,9 @@ def clean_string(string: str) -> str:
     
 
 def clean_data():
+    '''
+    Remove empty cells and clean all text of odd text and ascii characters
+    '''
     with open('real_data.csv', 'r') as real, open('fake_data.csv', 'r') as fake:
         real_reader = csv.reader(real, delimiter='|')
         fake_reader = csv.reader(fake, delimiter='|')
@@ -122,6 +140,10 @@ def clean_data():
     # fake.to_csv('Cleaned_Fake_Dataset.csv', sep='|')
 
 def combine_data():
+    '''
+    Combine the two datasets with a 25-75 even split to generate
+    a roughly even set training and testing datasets
+    '''
     real = pd.read_csv('Cleaned_Real_Dataset.csv', sep='|')
     fake = pd.read_csv('Cleaned_Fake_Dataset.csv', sep='|')
 
@@ -157,7 +179,6 @@ def combine_data():
     
 
 def main():
-    csv.field_size_limit(sys.maxsize)
     split_data()
 
     clean_data()
