@@ -48,6 +48,5 @@ Campos R., Mangaravite V., Pasquali A., Jorge A.M., Nunes C., and Jatowt A. (201
 
 Campos R., Mangaravite V., Pasquali A., Jorge A.M., Nunes C., and Jatowt A. (2018). YAKE! Collection-independent Automatic Keyword Extractor. In: Pasi G., Piwowarski B., Azzopardi L., Hanbury A. (eds). Advances in Information Retrieval. ECIR 2018 (Grenoble, France. March 26 – 29). Lecture Notes in Computer Science, vol 10772, pp. 806 - 810. pdf
 
-### Distilbert, a distilled version of408
-bert: Smaller, faster, cheaper and lighte
+### Distilbert, a distilled version of bert: Smaller, faster, cheaper and lighter
 Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf. 2019. Distilbert, a distilled version of bert: Smaller, faster, cheaper and lighter. ArXiv.org.
