@@ -96,7 +96,7 @@ def generate_csv(includeText = False):
         # Skip header row
         next(test_reader)
 
-        with open('yake_key_phrases.csv', 'w') as file:
+        with open('./results/yake_key_phrases.csv', 'w') as file:
             writer = csv.writer(file, delimiter='|')
 
             rows = [['Key Phrase', 'score', 'label']]
