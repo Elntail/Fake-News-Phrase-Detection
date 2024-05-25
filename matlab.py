@@ -8,9 +8,7 @@ csv.field_size_limit(sys.maxsize)
 
 
 def add_data():
-    ''' Combines the orignal dataset to the distilbert
-        label
-    '''
+    ''' Combines the orignal dataset to the distilbert label'''
     yake_orig = 'results/yake_key_phrases.csv' 
     yake_distb = 'results/yake_true_false_stats.csv'
 
@@ -86,7 +84,7 @@ def graph():
         result = (t_real + t_neg) / total
 
         accuracy.append(result)
-
+    
     # print(index)
     # print(accuracy)
     
@@ -96,6 +94,7 @@ def graph():
     plt.show()
 
 def scatterplot():
+    ''' Produce a scatterplot that compares the given YAKE score to the Phrase length'''
     results = pd.read_csv('results/results.csv')
     phrases_length = results['phrase length'].tolist()
     yake_score = results['yake score'].tolist()
@@ -113,6 +112,7 @@ def scatterplot():
     plt.show()
 
 def density():
+    ''' Compares density of yake scores'''
     results = pd.read_csv('results/results.csv')
     yake_score = results['yake score'].tolist()
 
@@ -124,11 +124,11 @@ def density():
 
 def main():
 
-    # add_data()
+    add_data()
     stacked_bargraph()
-    # graph()
-    # scatterplot()
-    # density()
+    graph()
+    scatterplot()
+    density()
 
 
   
