@@ -328,8 +328,8 @@ def main():
 
     csv.field_size_limit(sys.maxsize)
 
-    train_f = "train.csv"
-    test_f = "test.csv"
+    train_f = "./data/train.csv"
+    test_f = "./data/test.csv"
 
     train_titles, train_texts, train_labels = make_data(train_f)
     test_titles, test_texts, test_labels = make_data(test_f)
