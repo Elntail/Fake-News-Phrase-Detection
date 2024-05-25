@@ -6,6 +6,12 @@ This program was created by Rommel Lantajo II and Riik Acharya of Vassar College
 Fake News is a prevalent problem plaguing our society today. Especially with the rise of social media, it’s easier than ever to spread fake news to a wide variety of unsuspecting viewers. Not only that, but because of social media, it is easier for people to retreat into their own bubbles and only consume news that they know already backs up their own viewpoints. There had also been a rise of people not reading the actual article but instead only the title itself and make their own conclusions from it. But can key phrase(s) within the article that is can be used as an indication that the article is authentic or fake? 
 
 ## How to run the program?
+### Install all relevant libraries:
+pip3 install git+https://github.com/LIAAD/yake
+pip3 install pandas
+pip3 install transformers
+pip3 install numpy
+pip3 install matplotlib
 
 ### Cleaning the dataset
 #### Preparation:
