@@ -7,11 +7,11 @@ Fake News is a prevalent problem plaguing our society today. Especially with the
 
 ## How to run the program?
 ### Install all relevant libraries:
-pip3 install git+https://github.com/LIAAD/yake
-pip3 install pandas
-pip3 install transformers
-pip3 install numpy
-pip3 install matplotlib
+* pip3 install git+https://github.com/LIAAD/yake
+* pip3 install pandas
+* pip3 install transformers
+* pip3 install numpy
+* pip3 install matplotlib
 
 ### Cleaning the dataset
 #### Preparation:
