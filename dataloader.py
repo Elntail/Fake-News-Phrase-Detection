@@ -202,7 +202,6 @@ def combine_data():
 def main():
     split_data()
 
-    # 
     clean_data()
     
     combine_data()

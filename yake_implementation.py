@@ -10,6 +10,8 @@ import csv
 from spacy.lang.en import English
 nlp = English(pipeline=[])
 nlp.add_pipe("sentencizer")
+csv.field_size_limit(sys.maxsize)
+
 
 
 def generate_keyword_freq(text: str) -> list[tuple[str, int]] :
@@ -48,7 +50,7 @@ def remove_single_words(KeyWords: list[tuple[str, int]]) -> list[tuple[str, int]
 
 
 def generate_keywords_title(title: str) -> list[list[str, int]]:
-    
+    ''' Process Titles with YAKE, removing any single words '''
     keywords = generate_keyword_freq(title)
     keywords = remove_single_words(keywords)
     
@@ -56,7 +58,9 @@ def generate_keywords_title(title: str) -> list[list[str, int]]:
 
 
 def generate_keywords_text(story: str) -> list[list[str, int]]:
-    ''' Process each sentence in the article and get a single keyphrase '''
+    ''' Process each sentence in the article and get a single keyphrase,
+        removing any single words
+     '''
     sentences = get_sentences(story)
 
     list_keyphrases = []
@@ -71,7 +75,7 @@ def generate_keywords_text(story: str) -> list[list[str, int]]:
 
 
 def process_keysphrases(keyphrases: list[list[str, int]], label: int) -> list[[str, int, int]]:
-    ''' Append a label to keyphrases '''
+    ''' Append authenicity label to keyphrases '''
     rows = []
     
     for (phrase, score) in keyphrases:
@@ -131,7 +135,7 @@ def generate_csv(includeText = False):
 
 
 
-# Obtained from class
+# Obtained from class code of Professor Gordon of Vassar College
 def get_sentences(text: str) -> list[str]:
     """Split the specified text into sentences, consisting of text tokens."""
     sents = []
@@ -145,22 +149,15 @@ def get_sentences(text: str) -> list[str]:
 
 
 def main():
-    csv.field_size_limit(sys.maxsize)
-
     generate_csv()
+    # test = pd.read_csv('test.csv', sep='|')
+    # yake = pd.read_csv('yake_key_phrases.csv', sep='|')
 
-    test = pd.read_csv('test.csv', sep='|')
-    print('test: ', len(test))
-
-    yake = pd.read_csv('yake_key_phrases.csv', sep='|')
-    print('yake: ', len(yake))
+    # Uncomment below if you want to compare test vs yake file sizes
+    # print('test: ', len(test))
+    # print('yake: ', len(yake))
 
 
-  
-
-  
-
-  
 
 
 if __name__ == "__main__":
