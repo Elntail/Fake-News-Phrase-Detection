@@ -32,7 +32,12 @@ Create a new folder called ckpt to store the checkpoint files
 To run the distilbert model simply type in the terminal:
 python3 distilBert.py
 #### What does these programs do?
-The DistilBert model will first train on the train.csv and then on both the yake_key_phrases.csv and the test.csv. The reason why we test both files is because we can examine the performace of the classification of both files and testing the accuracy of the model overall. The program then produce a new csv (Riik DOUBLE CHECK behavior) 
+
+The data is first passed into a DistillBERT layer, and then into a neural network. The model first trains on the train.csv and then makes predictions on both the yake_key_phrases.csv and the test.csv, as well as train.csv itself. The reason why we test both test.csv and train.csv is because we can examine the performace of the classification of both files and testing the accuracy of the model overall. 
+
+The neural network has 4 hidden layers. The program trains on a certain number of epochs, meaning it runs over and over again a certain number of times hoping to achieve better results each time. This number controlled by the variable NUM_EPOCHS. It is set to 20, but it may be changed to be any number without affecrting the neural network itself. However, the average test loss may start increasing after a while if there are too many epochs. After each epoch, the checkpoint folder saves the results of that epoch, so if anything were to happen during the program's run, if it is run again, the program will start from after the last checkpoint instead of all over again.
+
+After the completion of all the epochs, the program computes the f1-score for the testing data and the yake phrases. The f1 score is a balance of both precision and recall.
 
 ### (Optional) Data visualization
 #### Preparation:
